@@ -2,6 +2,8 @@
 
 **QLoRA-compatible NF4 quantization for fused-3D MoE expert tensors** — the `nn.Parameter` experts that no off-the-shelf weight-only quantizer reaches yet.
 
+> 📄 Full writeup with diagrams: **[huggingface.co/mncai/nf4moe](https://huggingface.co/mncai/nf4moe)**
+
 Validated on **GLM-5.2 (743B total / 39B active)**: **~1.49 TB bf16 → ~414 GB**, one replica fits on 4×B200 (~103 GB/card), and the frozen base stays **differentiable** — gradients flow through all 743B quantized parameters to a trainable input-side module (projector / LoRA).
 
 ## The gap this fills
