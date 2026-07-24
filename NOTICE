@@ -1,0 +1,16 @@
+nf4moe
+Copyright 2026 Daewoo Myoung
+
+This repository contains SOURCE CODE ONLY. It does NOT include, redistribute,
+or relicense any model weights or datasets. In particular:
+
+  - GLM-5.2 base weights are the property of their respective owners
+    (Zhipu AI / Z.ai) and are governed by their own license terms. Obtain
+    them directly from the official sources and comply with those terms.
+
+The Apache-2.0 license in the LICENSE file applies to the code in this
+repository, not to any model weights or datasets.
+
+nf4moe was extracted from a larger private research codebase; the NF4
+packing/unpacking primitives are provided by the bitsandbytes library
+(MIT license), used here via its public functional API.

@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+build/
+dist/
+*.egg-info/
+ckpt/
+*.pt
+*.safetensors
+.DS_Store

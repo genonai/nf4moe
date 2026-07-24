@@ -1,0 +1,24 @@
+[project]
+name = "nf4moe"
+version = "0.1.0"
+description = "QLoRA-compatible NF4 quantization for fused-3D MoE expert tensors (the nn.Parameter experts module-swap quantizers can't reach)"
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [{ name = "Daewoo Myoung" }]
+requires-python = ">=3.10"
+dependencies = [
+    "torch",
+    "bitsandbytes>=0.45",
+    "accelerate",
+    "transformers",
+]
+
+[project.urls]
+Repository = "https://github.com/genonai/nf4moe"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["nf4moe"]
