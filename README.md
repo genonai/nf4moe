@@ -40,12 +40,12 @@ flowchart TB
         EX -- "dequant routed experts only,<br/>then F.linear(x, w)" --> NE
     end
     NE --> HEAD["lm_head → loss"]
-    HEAD -. "backward: gradient flows THROUGH every frozen layer —<br/>dequant is constant w.r.t. activations; expert weights get NO grad" .-> PROJ
+    HEAD -. "backward" .-> BWD["gradient flows back THROUGH every frozen layer<br/>and updates ONLY the trainable module —<br/>dequant is constant w.r.t. activations,<br/>expert weights get NO grad"]
 
     classDef trained fill:#2a78d6,stroke:#1c5cab,color:#ffffff
     classDef frozenbf fill:#e1e0d9,stroke:#c3c2b7,color:#0b0b0b
     classDef frozennf4 fill:#104281,stroke:#0d366b,color:#ffffff
-    class PROJ trained
+    class PROJ,BWD trained
     class NE frozenbf
     class EX frozennf4
 ```
