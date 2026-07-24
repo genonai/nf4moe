@@ -22,6 +22,36 @@ Weight-only quantizers (bitsandbytes, torchao, AWQ, GPTQ) are all **`nn.Linear` 
 
 Inference-side 4-bit fused-MoE exists (GGUF, vLLM Marlin/AWQ/GPTQ) but is not differentiable. **This repo covers the empty intersection: 4-bit fused experts × training.** The trick is standard QLoRA logic ported to 3D tensors: expert weights are frozen, dequantization is constant w.r.t. activations, so `F.linear(x, dequant(w))` stays differentiable in `x`.
 
+## Training structure at a glance
+
+Solid arrows = forward pass, dashed arrow = the gradient's return trip. Only the blue box trains; the dark-blue expert stack is what this repo quantizes:
+
+```mermaid
+flowchart LR
+    VIS["input-side features<br/>(e.g. a frozen vision tower)"] --> PROJ["trainable module<br/>(projector / adapter)"]
+    TXT["text token embeddings"] --> SPL["splice at placeholder<br/>token positions"]
+    PROJ --> SPL
+    SPL --> BASE
+    subgraph BASE["frozen MoE base — sharded round-robin over N GPUs — ×N decoder layers"]
+        direction TB
+        NE["attention · router · dense + shared MLP<br/>kept bf16<br/>(LoRA attaches here)"]
+        EX["fused-3D experts — ~95% of params<br/>NF4 packed buffers (this repo)"]
+        NE -- "top-k routing" --> EX
+        EX -- "dequant routed experts only,<br/>then F.linear(x, w)" --> NE
+    end
+    BASE --> HEAD["lm_head → loss"]
+    HEAD -. "backward: gradient flows THROUGH every frozen layer —<br/>dequant is constant w.r.t. activations; expert weights get NO grad" .-> PROJ
+
+    classDef trained fill:#2a78d6,stroke:#1c5cab,color:#ffffff
+    classDef frozenbf fill:#e1e0d9,stroke:#c3c2b7,color:#0b0b0b
+    classDef frozennf4 fill:#104281,stroke:#0d366b,color:#ffffff
+    class PROJ trained
+    class NE frozenbf
+    class EX frozennf4
+```
+
+> 🔵 **blue = trained (bf16)** · ⬜ **gray = frozen bf16** · 🔷 **dark blue = frozen NF4 — the 95% no stock quantizer reaches**
+
 ## What's inside
 
 | File | What it does |
