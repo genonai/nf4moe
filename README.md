@@ -27,19 +27,19 @@ Inference-side 4-bit fused-MoE exists (GGUF, vLLM Marlin/AWQ/GPTQ) but is not di
 Solid arrows = forward pass, dashed arrow = the gradient's return trip. Only the blue box trains; the dark-blue expert stack is what this repo quantizes:
 
 ```mermaid
-flowchart LR
+flowchart TB
     VIS["input-side features<br/>(e.g. a frozen vision tower)"] --> PROJ["trainable module<br/>(projector / adapter)"]
-    TXT["text token embeddings"] --> SPL["splice at placeholder<br/>token positions"]
-    PROJ --> SPL
-    SPL --> BASE
+    PROJ --> SPL["splice at placeholder token positions"]
+    TXT["text token embeddings"] --> SPL
+    SPL --> NE
     subgraph BASE["frozen MoE base — sharded round-robin over N GPUs — ×N decoder layers"]
-        direction TB
-        NE["attention · router · dense + shared MLP<br/>kept bf16<br/>(LoRA attaches here)"]
+        direction LR
+        NE["attention · router · dense + shared MLP<br/>kept bf16 (LoRA attaches here)"]
         EX["fused-3D experts — ~95% of params<br/>NF4 packed buffers (this repo)"]
         NE -- "top-k routing" --> EX
         EX -- "dequant routed experts only,<br/>then F.linear(x, w)" --> NE
     end
-    BASE --> HEAD["lm_head → loss"]
+    NE --> HEAD["lm_head → loss"]
     HEAD -. "backward: gradient flows THROUGH every frozen layer —<br/>dequant is constant w.r.t. activations; expert weights get NO grad" .-> PROJ
 
     classDef trained fill:#2a78d6,stroke:#1c5cab,color:#ffffff
